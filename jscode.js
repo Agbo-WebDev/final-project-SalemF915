@@ -15,44 +15,24 @@ function turn2(){
     pass
     return ;
 }
-async function compare(){
+async function server_test(){
 
-    const coll = await fetch('/music');
-
-    
+    const response = await fetch('/music');
+    const coll = await response.json();
 
     file_1 = document.getElementById('upload1');
     let test = file_1.files;
 
-    const result = await coll.insertOne(test);
-    console.log(test);
+    console.log("Music retrieve from database success", coll);
 
 
 }
 
 
 
-async function insert() {
+async function insert(){
 
     file_1 = document.getElementById('upload1');
-
-    const coll = await fetch('music');
-    let test = file_1.files;
-
-
-
-
-
-
-    
-}
-
-async function _set(){
-    file_1 = document.getElementById('upload1');
-
-    const _server = await fetch('_server');
-
-    console.log(_server);
-
+    await fetch('/insert');
 
 }

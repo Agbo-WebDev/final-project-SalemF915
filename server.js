@@ -1,3 +1,6 @@
+import { BSON } from 'mongodb';
+
+
 
 const http = require('http');
 const fs = require('fs');
@@ -9,16 +12,31 @@ const port = 8080; // you can use any port
 let MongoClient = require('mongodb').MongoClient;
 let url = "mongodb://localhost:27017/";
 
+const client = new MongoClient(url);
+
+client.connect().then(() => {
+    console.log("Connected to MongoDB");
+}
+);
+
+const dbo = client.db('MusicDataBase')
+
+//function connects the database 
+async function connectToDatabase(){
+
+    console.log("Database connected successfully");
+    const music_files = await dbo.collection('msc').find({}).toArray();
+
+    console.log(music_files)
+    
+}
+
 
 //used to get the data from the database
 async function setup(){
 
 
-    //connects to the database through a connection with the url
-    client = await MongoClient.connect(url);
-
     //gets the desired database
-    const dbo = client.db("MusicDataBase");
 
     const music_files = await dbo.collection('msc').find({}).toArray();
 
@@ -28,13 +46,6 @@ async function setup(){
 
 }
 
-async function _server(){
-    client = await MongoClient.connect(url);
-
-    const dbo = client.db('MusicDataBase');
-
-    return dbo;
-}
 
 async function insert(item) {
     client = await MongoClient.connect(url);
@@ -66,8 +77,8 @@ const server =http.createServer(function (req, res) {
         return;
         }
 
-        else if (req.url === '/insert') {
-            insert().then(data => {
+        else if (req.url === '/insert' && req.method === 'POST') {
+            insert(item).then(data => {
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 res.end(JSON.stringify(data));
             });
@@ -105,8 +116,8 @@ const server =http.createServer(function (req, res) {
 });
 
 server.listen(port,hostname, () => {
+    connectToDatabase();
     console.log(`Server running at http://${hostname}:${port}/`);
+    
 });
 
-
-setup()
