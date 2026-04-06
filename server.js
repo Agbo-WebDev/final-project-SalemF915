@@ -1,9 +1,7 @@
-import { BSON } from 'mongodb';
-
-
-
 const http = require('http');
 const fs = require('fs');
+const { BSON } = require('mongodb');
+
 const hostname = '127.0.0.1';
 const port = 8080; // you can use any port
 
@@ -21,13 +19,15 @@ client.connect().then(() => {
 
 const dbo = client.db('MusicDataBase')
 
+const collection = dbo.collection('msc');
+
 //function connects the database 
 async function connectToDatabase(){
 
     console.log("Database connected successfully");
-    const music_files = await dbo.collection('msc').find({}).toArray();
+    let music_files = await dbo.collection('msc').find({}).toArray();
 
-    console.log(music_files)
+    console.log(music_files);
     
 }
 
@@ -38,7 +38,7 @@ async function setup(){
 
     //gets the desired database
 
-    const music_files = await dbo.collection('msc').find({}).toArray();
+    let music_files = await dbo.collection('msc').find({}).toArray();
 
     console.log(music_files);
 
@@ -48,12 +48,13 @@ async function setup(){
 
 
 async function insert(item) {
-    client = await MongoClient.connect(url);
 
-    const dbo = client.db("MusicDataBase");
+    ///console.log("Inserting item:", item);
+    ///const bson_input = BSON.serialize(item);
 
+    ///connects to the database
+    console.log("TESTING ");
     const result = await dbo.collection('msc').insertOne(item);
-    console.log(result);
     
 
 }
@@ -78,10 +79,24 @@ const server =http.createServer(function (req, res) {
         }
 
         else if (req.url === '/insert' && req.method === 'POST') {
-            insert(item).then(data => {
-                res.writeHead(200, {'Content-Type': 'application/json'});
-                res.end(JSON.stringify(data));
-            });
+
+            let body = '';
+
+            req.on('data', chunk =>{
+                body += chunk;
+            })
+
+            req.on('end', async() => {
+                try{
+                    const item = JSON.parse(body);
+                    const result = await insert(item);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                }    catch(err){
+                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+            })
             return;
         }
 

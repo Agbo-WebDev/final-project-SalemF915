@@ -5,15 +5,11 @@ let file_2 = null;
 
 
 function turn1(){
-    pass
-    return ;
+    return;
 }
 
 function turn2(){
-
-    
-    pass
-    return ;
+    return;
 }
 async function server_test(){
 
@@ -32,7 +28,24 @@ async function server_test(){
 
 async function insert(){
 
+    //gets the file from input
     file_1 = document.getElementById('upload1');
-    await fetch('/insert');
 
+    const read_file = file_1.files[0];
+    const text = await read_file.text();
+
+
+    const jsonData = JSON.parse(text);
+
+
+    const response = await fetch('/insert', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData),
+    });
+
+
+    server_test();
 }
