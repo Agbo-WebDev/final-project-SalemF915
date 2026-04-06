@@ -27,7 +27,7 @@ async function connectToDatabase(){
     console.log("Database connected successfully");
     let music_files = await dbo.collection('msc').find({}).toArray();
 
-    console.log(music_files);
+    ///console.log(music_files);
     
 }
 
@@ -40,7 +40,6 @@ async function setup(){
 
     let music_files = await dbo.collection('msc').find({}).toArray();
 
-    console.log(music_files);
 
     return music_files;
 
@@ -53,7 +52,6 @@ async function insert(item) {
     ///const bson_input = BSON.serialize(item);
 
     ///connects to the database
-    console.log("TESTING ");
     const result = await dbo.collection('msc').insertOne(item);
     
 
