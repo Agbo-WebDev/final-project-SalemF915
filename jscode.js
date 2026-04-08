@@ -2,15 +2,14 @@ let file_1 = null;
 
 let file_2 = null;
 
+async function table_create(){
+    const table = document.getElementById('ProjectTable');
+
+    const items = await fetch('/get_projects');
 
 
-function turn1(){
-    return;
 }
 
-function turn2(){
-    return;
-}
 async function server_test(){
 
     const response = await fetch('/music');
@@ -24,7 +23,24 @@ async function server_test(){
 
 }
 
+async function createproject() {
+    const project = document.getElementById('project_name');
 
+    const read_file = project.files[0];
+    const text = await read_file.text();
+
+    const jsonData = JSON.parse(text);
+
+    const response = await fetch('/create_project', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(jsonData),
+    });
+
+    
+}
 
 async function insert(){
 

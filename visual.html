@@ -16,7 +16,7 @@
     <h1>Music Organizing</h1>
 
     <div class="jumbotron text-center">
-    <h1>Import Json Files from Ultrabox!</h1>
+    <h1>Import Json Files from BeepBox!</h1>
     <p>Import a JSON file and watch it get automactially get sorted!</p> 
     </div>
 
@@ -24,13 +24,19 @@
 
     <div class = "container">
 
+
+    
+
     </div>
 
     <input id = "upload1" type="file" >​
     <input id = "upload2" type="file" >​
 
+    <p>upload folder</p>
 
+    <input id = "uploadfolder" type="file" webkitdirectory directory multiple>​
 
+    <div class = buttons>
     <button id="compareBtn" onclick="server_test()">Server Test</button>
 
     <button id="inserBtn" onclick="insert()">Insert file</button>
@@ -39,7 +45,33 @@
 
     <button id="ComparefilesBtn" onclick="compare()">Compare Files</button>
 
+    <button id="Backup files" onclick="backup()">Backup Files</button>
 
+    </div>
+
+    <div class = "container" style="background-color: darkblue;">
+        <div class="buttons"> 
+            <button id="createBtn" onclick="createproject()">Create Project</button>
+        </div>
+    <input id="project_name" type="file" style="width: 10%; height: 20%;" >
+
+    
+    </div>
+
+
+
+
+    <table class = "table table-dark">
+    <thead>
+        <tr>
+        <th scope="col">#</th>
+        <th scope="col">Project Name</th>
+        </tr>
+    </thead>
+    <tbody id="projectTableBody">
+        <!-- Project rows will be dynamically added here -->
+    </tbody>
+    </div>
 
 
     <script src="jscode.js"></script>

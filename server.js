@@ -57,6 +57,24 @@ async function insert(item) {
 
 }
 
+async function create_project(item) {
+    /// This function creates a unquie project that can be used to store music files
+
+    
+    const result = await dbo.collection('msc').insertOne(item);
+    console.log(result);
+    console.log(Str(result.insertedId));
+
+
+}
+
+async function get_projects() {
+    const projects = await dbo.collection('msc').find({}).toArray();
+
+    return projects;
+    
+}
+
 
 const server =http.createServer(function (req, res) {
     let filePath;
@@ -96,6 +114,32 @@ const server =http.createServer(function (req, res) {
                 }
             })
             return;
+        }
+
+        else if (req.url === '/create_project' && req.method === 'POST') {
+            let body = '';
+
+            req.on('data', chunk =>{
+                body += chunk;
+            })
+
+            req.on('end', async() => {
+                try{
+                    const item = JSON.parse(body);
+                    const result = await create_project(item);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                }    catch(err){
+                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+            })
+            return;
+
+        }
+
+        else if (req.url === '/get_projects') {
+
         }
 
         else if (req.url === '_server'){
