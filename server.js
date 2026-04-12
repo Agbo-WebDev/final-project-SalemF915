@@ -64,6 +64,8 @@ async function create_project(item) {
 
         ///unquie id for the project is used to identify the project family
         unque_id: new BSON.ObjectId(),
+
+        /// used to determine if the project should be displayed on html page
         priority: true,
         name: item.name,  // Get from item or use default
         description: item.description || "This is a test",
@@ -74,8 +76,6 @@ async function create_project(item) {
         ...item, 
         p_data
     };
-
-
 
 
     const result = await dbo.collection('msc').insertOne(project);
@@ -89,7 +89,16 @@ async function create_project(item) {
 }
 
 async function get_projects() {
-    const projects = await dbo.collection('msc').find({}).toArray();
+
+    const projects = []
+
+    const music_files = await dbo.collection('msc').find({}).toArray();
+
+    for (const file of music_files) {
+        if (file.p_data && file.p_data.priority) {
+            projects.push(file);
+        }
+    }
 
     return projects;
     
@@ -159,6 +168,11 @@ const server =http.createServer(function (req, res) {
         }
 
         else if (req.url === '/get_projects') {
+
+            get_projects().then(data =>{
+                res.writeHead(200, {'Content-Type': 'application/json'});
+                res.end(JSON.stringify(data));
+            })
 
         }
 

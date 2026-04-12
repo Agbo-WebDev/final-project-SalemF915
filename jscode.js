@@ -10,6 +10,19 @@ async function table_create(){
 
 }
 
+async function update_table(){
+
+    const items = await fetch('/get_projects');
+
+    console.log("items:",await items.json());
+
+    const tbody = document.getElementById('projectTableBody');
+    const row = document.createElement('tr');
+
+
+
+}
+
 async function server_test(){
 
     const response = await fetch('/music');
@@ -39,7 +52,15 @@ async function createproject() {
         body: JSON.stringify(jsonData),
     });
 
+    /// create the project and adds it onto the mongodb server
+
+
+    console.log("Project created", response);
+
     server_test();
+
+    /// after creating the project, update the table to show the new project
+    update_table();
 
     
 }
@@ -56,7 +77,7 @@ async function insert(){
     const jsonData = JSON.parse(text);
 
 
-    const response = await fetch('/insert', {
+    await fetch('/insert', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
