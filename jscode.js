@@ -39,6 +39,8 @@ async function createproject() {
         body: JSON.stringify(jsonData),
     });
 
+    server_test();
+
     
 }
 

@@ -60,10 +60,30 @@ async function insert(item) {
 async function create_project(item) {
     /// This function creates a unquie project that can be used to store music files
 
-    
-    const result = await dbo.collection('msc').insertOne(item);
+    const p_data = {
+
+        ///unquie id for the project is used to identify the project family
+        unque_id: new BSON.ObjectId(),
+        priority: true,
+        name: item.name,  // Get from item or use default
+        description: item.description || "This is a test",
+        ///date that project was uploaded to the database
+        date: new Date()
+    }
+    const project = {
+        ...item, 
+        p_data
+    };
+
+
+
+
+    const result = await dbo.collection('msc').insertOne(project);
     console.log(result);
     console.log(Str(result.insertedId));
+
+
+
 
 
 }
