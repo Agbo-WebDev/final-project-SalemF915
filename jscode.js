@@ -2,24 +2,24 @@ let file_1 = null;
 
 let file_2 = null;
 
-async function table_create(){
-    const table = document.getElementById('ProjectTable');
-
-    const items = await fetch('/get_projects');
-
-
-}
-
 async function update_table(){
 
-    const items = await fetch('/get_projects');
+    const response = await fetch('/get_projects');
+    const items = await response.json();
+    console.log("items:", items);
 
-    console.log("items:",await items.json());
+    const table = document.getElementById('projectTableBody');
+    table.innerHTML = '';
 
-    const tbody = document.getElementById('projectTableBody');
-    const row = document.createElement('tr');
+    for (const item of items) {
+        const row = document.createElement('tr');
+        const idCell = document.createElement('td');
 
+        idCell.textContent = item;
+        row.appendChild(idCell);
 
+        table.appendChild(row);
+    }
 
 }
 
@@ -86,7 +86,7 @@ async function insert(){
     });
 
 
-    server_test();
+    update_table();
 }
 
 

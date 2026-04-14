@@ -1,0 +1,25 @@
+The error is in your server.js. Looking at the `/get_projects` route handler, it's missing a `return;` statement:
+
+```javascript
+else if (req.url === '/get_projects') {
+
+    get_projects().then(data =>{
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify(data));
+    })
+    
+    return;  // <-- ADD THIS
+
+}
+```
+
+**The problem:** Without the `return;`, the code falls through to the `fs.readFile(filePath)` at the bottom, but `filePath` is undefined because it was never set for this route. All your other route handlers (like `/music`, `/insert`, etc.) have `return;` statements to prevent this.
+
+
+
+
+
+
+
+
+

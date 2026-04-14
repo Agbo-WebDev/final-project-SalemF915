@@ -45,14 +45,92 @@ async function setup(){
 
 }
 
+async function compare(obj1, obj2){
+
+    const flattenJSON = (obj, prefix = '') => {
+    return Object.keys(obj).reduce((acc, k) => {
+        const pre = prefix.length ? prefix + '.' : '';
+        if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+        Object.assign(acc, flattenJSON(obj[k], pre + k));
+        } else {
+        acc[pre + k] = obj[k];
+        }
+        return acc;
+    }, {});
+    };
+    ///flattens the json files, so they can be compared more easily
+    const getSimilarity = (obj1, obj2) => {
+    const flat1 = flattenJSON(obj1);
+    const flat2 = flattenJSON(obj2);
+
+    const set1 = new Set(Object.entries(flat1).map(e => JSON.stringify(e)));
+    const set2 = new Set(Object.entries(flat2).map(e => JSON.stringify(e)));
+
+    const intersection = new Set([...set1].filter(x => set2.has(x)));
+    const union = new Set([...set1, ...set2]);
+
+    return intersection.size / union.size;
+    };
+
+    const similarity = getSimilarity(obj1, obj2);
+    return similarity;
+
+}
+
+
+
+
+
 
 async function insert(item) {
 
     ///console.log("Inserting item:", item);
     ///const bson_input = BSON.serialize(item);
 
+    const inserting = item;
     ///connects to the database
-    const result = await dbo.collection('msc').insertOne(item);
+
+    /// First it needs to compare the file to other existing files in database, if the file is similar or the exact same, it should add it to the same family
+
+    const music_files = await dbo.collection('msc').find({}).toArray();
+
+    ///goes through all the music files in the database, compares them to new file, if similar, adds new file to the same family, and makes the new file the priority file. If not, creates a new family for new file
+    for (const file of music_files) {
+
+        const similarity = await compare(inserting, file);
+        if (similarity >= 0.75){
+            ///if the file is similar to an existing file, it should be added to the same family, and the new file should be the priority file
+            const family_id = file.p_data.unque_id;
+            const _p_data = {
+                unque_id: family_id,
+                priority: true,
+                name:item.name,
+                description: "This is a test",
+                date: new Date()
+            }
+            const new_file = {
+                ...item,
+                p_data: _p_data
+            }
+
+            await dbo.collection('msc').insertOne(new_file);
+            ///after inserting the new file, it should update the old file to not be the priority file
+            await dbo.collection('msc').updateOne({_id: file._id}, {$set: {"p_data.priority": false}});
+
+            return;
+
+        }
+
+
+
+
+    }
+    ///if the file is not similar , create a new family for the new file, and make it the priority
+
+    create_project(inserting);
+    return;
+
+
     
 
 }
@@ -79,11 +157,6 @@ async function create_project(item) {
 
 
     const result = await dbo.collection('msc').insertOne(project);
-    console.log(result);
-    console.log(Str(result.insertedId));
-
-
-
 
 
 }
@@ -96,7 +169,7 @@ async function get_projects() {
 
     for (const file of music_files) {
         if (file.p_data && file.p_data.priority) {
-            projects.push(file);
+            projects.push(file._id);
         }
     }
 
@@ -124,22 +197,23 @@ const server =http.createServer(function (req, res) {
         }
 
         else if (req.url === '/insert' && req.method === 'POST') {
-
             let body = '';
 
-            req.on('data', chunk =>{
+            req.on('data', chunk => {
                 body += chunk;
+                if (body.length > 1e6) req.connection.destroy();
             })
 
             req.on('end', async() => {
                 try{
                     const item = JSON.parse(body);
-                    const result = await insert(item);
+                    await insert(item);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(result));
-                }    catch(err){
-                      res.writeHead(400, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                    res.end(JSON.stringify({ success: true }));
+                } catch(err){
+                    console.error('Insert error:', err);
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: err.message }));
                 }
             })
             return;
@@ -173,6 +247,8 @@ const server =http.createServer(function (req, res) {
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 res.end(JSON.stringify(data));
             })
+
+            return;
 
         }
 
