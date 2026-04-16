@@ -1,6 +1,3 @@
-let file_1 = null;
-
-let file_2 = null;
 
 async function update_table(){
 
@@ -70,11 +67,23 @@ async function insert(){
     //gets the file from input
     file_1 = document.getElementById('upload1');
 
+    ///gets the files name in relation to how it was saved on the computer
+    const name = file_1.files[0].name;
+
+    console.log("File name:", name);
+
+
+
     const read_file = file_1.files[0];
     const text = await read_file.text();
 
-
+    ///is the data that is given
     const jsonData = JSON.parse(text);
+
+    const payload = {
+        data: jsonData,
+        __filename: name
+    }
 
 
     await fetch('/insert', {
@@ -82,7 +91,7 @@ async function insert(){
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(jsonData),
+        body: JSON.stringify(payload),
     });
 
 

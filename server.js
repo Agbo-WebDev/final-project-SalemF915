@@ -1,11 +1,11 @@
 const http = require('http');
 const fs = require('fs');
-const { BSON } = require('mongodb');
+///const { BSON } = require('mongodb');
+
+const { BSON, ServerApiVersion } = require('mongodb');
 
 const hostname = '127.0.0.1';
 const port = 8080; // you can use any port
-
-
 
 let MongoClient = require('mongodb').MongoClient;
 let url = "mongodb://localhost:27017/";
@@ -21,6 +21,29 @@ const dbo = client.db('MusicDataBase')
 
 const collection = dbo.collection('msc');
 
+
+///********************************************
+///MONGO ATLAS SET UP **********************
+const { MongoClient: AtlasMongoClient } = require('mongodb');
+const atlasuri = "mongodb+srv://adrian951_db_user:CatPeeSink915@mycluster0.zwstjen.mongodb.net/";
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const atlas_client = new MongoClient(atlasuri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+atlas_client.connect().then(() => {
+    console.log("Connected to MongoDB Atlas");
+})
+
+
+const atlas_dbo = atlas_client.db("MusicDataBase");
+const atlas_collection = atlas_dbo.collection('msc');
+
 //function connects the database 
 async function connectToDatabase(){
 
@@ -28,6 +51,13 @@ async function connectToDatabase(){
     let music_files = await dbo.collection('msc').find({}).toArray();
 
     ///console.log(music_files);
+
+
+    ///Mongo Atlas set up
+
+    console.log("Mongo Atlas connected successfully");
+    let atlas_music_files = await atlas_dbo.collection('msc').find({}).toArray();
+    console.log(atlas_music_files);
     
 }
 
@@ -48,6 +78,9 @@ async function setup(){
 async function compare(obj1, obj2){
 
     const flattenJSON = (obj, prefix = '') => {
+    if (obj === undefined || obj === null) {
+        return {};
+    }
     return Object.keys(obj).reduce((acc, k) => {
         const pre = prefix.length ? prefix + '.' : '';
         if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
@@ -97,8 +130,14 @@ async function insert(item) {
     ///goes through all the music files in the database, compares them to new file, if similar, adds new file to the same family, and makes the new file the priority file. If not, creates a new family for new file
     for (const file of music_files) {
 
-        const similarity = await compare(inserting, file);
+        if (file.p_data.priority === true){
+            ///if the file is a priority file, it should be compared to the new file, if the file is not a priority file, it should not be compared to the new file, because it is not the most up to date version of the family
+        
+        const similarity = await compare(inserting.data, file.data);
+        console.log("similarity",similarity);
         if (similarity >= 0.75){
+
+            
             ///if the file is similar to an existing file, it should be added to the same family, and the new file should be the priority file
             const family_id = file.p_data.unque_id;
             const _p_data = {
@@ -120,6 +159,9 @@ async function insert(item) {
             return;
 
         }
+
+        }
+        ///if the file is not a priority file, it should not be compared, and stuff file is ignored
 
 
 
