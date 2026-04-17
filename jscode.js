@@ -1,4 +1,15 @@
 
+//The file contains stuff for user accounts
+let users = {
+  _id: ObjectId,
+  username: "string",
+  email: "string",
+  passwordHash: "hashed-password",
+  createdAt: Date,
+  lastLogin: Date
+}
+
+
 async function update_table(){
 
     const response = await fetch('/get_projects');
@@ -176,3 +187,45 @@ async function compare(){
     console.table(matrix);
 
 }
+
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value;
+  const password = document.getElementById('loginPassword').value;
+  
+  const response = await fetch('/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  
+  const data = await response.json();
+  if (data.success) {
+    alert('Logged in successfully!');
+    location.reload();
+  } else {
+    alert('Login failed: ' + data.error);
+  }
+});
+
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+  
+  const response = await fetch('/register', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password })
+  });
+  
+  const data = await response.json();
+  if (data.success) {
+    alert('Registration successful!');
+    location.reload();
+  } else {
+    alert('Registration failed: ' + data.error);
+  }
+});

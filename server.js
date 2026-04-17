@@ -1,17 +1,22 @@
 const http = require('http');
 const fs = require('fs');
-///const { BSON } = require('mongodb');
+const url = require('url');
 
 const { BSON, ServerApiVersion } = require('mongodb');
 
 const hostname = '127.0.0.1';
 const port = 8080; // you can use any port
+///********************************************
+///USER SETUP **********************
+
+const bcrypt = require('bcryptjs');
+
 
 
 ///********************************************
 ///MONGO ATLAS SET UP **********************
 const { MongoClient } = require('mongodb');
-const uri = "mongodb+srv://adrian951_db_user:CatPeeSink915@mycluster0.zwstjen.mongodb.net/";
+const uri = "mongodb+srv://guest_user:1234@mycluster0.zwstjen.mongodb.net/";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -22,25 +27,28 @@ const client = new MongoClient(uri, {
   },
 });
 
-client.connect().then(() => {
-    console.log("Connected to MongoDB Atlas");
-})
-
 
 const dbo = client.db("MusicDataBase");
+//stores all the information regarding user data
+const usersCollection = dbo.collection('users');
 const collection = dbo.collection('msc');
 
+
+
+
+
+/////////////////////////////////////////////////////
 //function connects the database 
 async function connectToDatabase(){
-
-
-
-    ///Mongo Atlas set up
-
+  try {
+    await client.connect();
     console.log("Mongo Atlas connected successfully");
     let atlas_music_files = await dbo.collection('msc').find({}).toArray();
     console.log(atlas_music_files);
-    
+  } catch(err) {
+    console.error("Failed to connect to MongoDB:", err);
+    throw err;
+  }
 }
 
 
@@ -209,7 +217,9 @@ async function get_projects() {
 }
 
 
-const server =http.createServer(function (req, res) {
+const server = http.createServer(async function (req, res) {
+
+
     let filePath;
 
         if (req.url === '/') {
@@ -283,13 +293,7 @@ const server =http.createServer(function (req, res) {
 
         }
 
-        else if (req.url === '_server'){
-            _server().then(data => {
-                res.writeHead(200, {'Content-Type': 'application/json'});
-                res.end(data);
-            });
-            return;
-        }
+
         else {
         res.writeHead(404);
         res.end('File not found');
@@ -313,9 +317,17 @@ const server =http.createServer(function (req, res) {
         });
 });
 
-server.listen(port,hostname, () => {
-    connectToDatabase();
+
+
+
+// Start server and connect to database
+server.listen(port, hostname, async () => {
+  try {
+    await connectToDatabase();
     console.log(`Server running at http://${hostname}:${port}/`);
-    
+  } catch(err) {
+    console.error('Failed to connect to database:', err);
+    process.exit(1);
+  }
 });
 
