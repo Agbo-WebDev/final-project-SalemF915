@@ -1,5 +1,21 @@
 {
+  "name": "final-project",
+  "version": "1.0.0",
+  "description": "Music Database Server",
+  "main": "server.js",
+  "scripts": {
+    "build": "pkg server.js --targets node18-win-x64 --output dist/server"
+  },
+  "pkg": {
+    "assets": [
+      "visual.html",
+      "jscode.js"
+    ]
+  },
   "dependencies": {
     "mongodb": "7.1"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.1"
   }
 }
