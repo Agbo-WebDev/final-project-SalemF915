@@ -26,6 +26,23 @@ async function update_table(){
         table.appendChild(row);
     }
 
+    ///creates a collapse for the projects, so you can see all the family memebers of a project 
+
+    ///goes through all the projects
+
+    /*
+    for (const item of items) {
+
+        const family
+        const dropdown = document.getElementById('projectCollapse');
+
+        const option = document.createElement('option');
+        option.value = item._id;
+        option.textContent = item.name;
+        dropdown.appendChild(option);
+
+    }
+    */
 }
 
 async function server_test(){

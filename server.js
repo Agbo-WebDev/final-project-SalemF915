@@ -123,7 +123,7 @@ async function insert(item) {
 
             
             ///if the file is similar to an existing file, it should be added to the same family, and the new file should be the priority file
-            const family_id = file.p_data.unque_id;
+            const family_id = file.p_data.unique_id;
             const _p_data = {
                 unique_id: family_id,
                 priority: true,
@@ -195,10 +195,11 @@ async function get_projects() {
 
     for (const file of music_files) {
         if (file.p_data && file.p_data.priority) {
+            const memberCount = await dbo.collection('msc').countDocuments({'p_data.unique_id': file.p_data.unique_id});
             projects.push({
                 _id: file._id,
                 name: file.__filename,
-                members: 0
+                members: memberCount
             });
         }
     }
