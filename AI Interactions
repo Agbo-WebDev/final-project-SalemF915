@@ -16,6 +16,7 @@ else if (req.url === '/get_projects') {
 **The problem:** Without the `return;`, the code falls through to the `fs.readFile(filePath)` at the bottom, but `filePath` is undefined because it was never set for this route. All your other route handlers (like `/music`, `/insert`, etc.) have `return;` statements to prevent this.
 
 
+ABOUT TO DO WACKY STUFF
 
 
 
