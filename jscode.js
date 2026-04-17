@@ -3,17 +3,25 @@ async function update_table(){
 
     const response = await fetch('/get_projects');
     const items = await response.json();
-    console.log("items:", items);
 
     const table = document.getElementById('projectTableBody');
     table.innerHTML = '';
 
     for (const item of items) {
         const row = document.createElement('tr');
+
         const idCell = document.createElement('td');
 
-        idCell.textContent = item;
+        idCell.textContent = item._id;
         row.appendChild(idCell);
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = item.name;
+        row.appendChild(nameCell);
+
+        const memberCell = document.createElement('td');
+        memberCell.textContent = item.members;
+        row.appendChild(memberCell);
 
         table.appendChild(row);
     }
@@ -41,12 +49,20 @@ async function createproject() {
 
     const jsonData = JSON.parse(text);
 
+    ///gets the name of the project, to keep the name
+    const name = project.files[0].name;
+
+    const payload = {
+        data: jsonData,
+        __filename: name
+    }
+
     const response = await fetch('/create_project', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(jsonData),
+        body: JSON.stringify(payload),
     });
 
     /// create the project and adds it onto the mongodb server

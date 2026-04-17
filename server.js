@@ -7,28 +7,14 @@ const { BSON, ServerApiVersion } = require('mongodb');
 const hostname = '127.0.0.1';
 const port = 8080; // you can use any port
 
-let MongoClient = require('mongodb').MongoClient;
-let url = "mongodb://localhost:27017/";
-
-const client = new MongoClient(url);
-
-client.connect().then(() => {
-    console.log("Connected to MongoDB");
-}
-);
-
-const dbo = client.db('MusicDataBase')
-
-const collection = dbo.collection('msc');
-
 
 ///********************************************
 ///MONGO ATLAS SET UP **********************
-const { MongoClient: AtlasMongoClient } = require('mongodb');
-const atlasuri = "mongodb+srv://adrian951_db_user:CatPeeSink915@mycluster0.zwstjen.mongodb.net/";
+const { MongoClient } = require('mongodb');
+const uri = "mongodb+srv://adrian951_db_user:CatPeeSink915@mycluster0.zwstjen.mongodb.net/";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const atlas_client = new MongoClient(atlasuri, {
+const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -36,27 +22,23 @@ const atlas_client = new MongoClient(atlasuri, {
   },
 });
 
-atlas_client.connect().then(() => {
+client.connect().then(() => {
     console.log("Connected to MongoDB Atlas");
 })
 
 
-const atlas_dbo = atlas_client.db("MusicDataBase");
-const atlas_collection = atlas_dbo.collection('msc');
+const dbo = client.db("MusicDataBase");
+const collection = dbo.collection('msc');
 
 //function connects the database 
 async function connectToDatabase(){
 
-    console.log("Database connected successfully");
-    let music_files = await dbo.collection('msc').find({}).toArray();
-
-    ///console.log(music_files);
 
 
     ///Mongo Atlas set up
 
     console.log("Mongo Atlas connected successfully");
-    let atlas_music_files = await atlas_dbo.collection('msc').find({}).toArray();
+    let atlas_music_files = await dbo.collection('msc').find({}).toArray();
     console.log(atlas_music_files);
     
 }
@@ -117,11 +99,13 @@ async function compare(obj1, obj2){
 
 async function insert(item) {
 
-    ///console.log("Inserting item:", item);
-    ///const bson_input = BSON.serialize(item);
 
     const inserting = item;
-    ///connects to the database
+
+    if (!inserting.data || !inserting.__filename) {
+        throw new Error('Item must have data and filename properties');
+    }
+
 
     /// First it needs to compare the file to other existing files in database, if the file is similar or the exact same, it should add it to the same family
 
@@ -141,7 +125,7 @@ async function insert(item) {
             ///if the file is similar to an existing file, it should be added to the same family, and the new file should be the priority file
             const family_id = file.p_data.unque_id;
             const _p_data = {
-                unque_id: family_id,
+                unique_id: family_id,
                 priority: true,
                 name:item.name,
                 description: "This is a test",
@@ -183,7 +167,7 @@ async function create_project(item) {
     const p_data = {
 
         ///unquie id for the project is used to identify the project family
-        unque_id: new BSON.ObjectId(),
+        unique_id: new BSON.ObjectId(),
 
         /// used to determine if the project should be displayed on html page
         priority: true,
@@ -211,7 +195,11 @@ async function get_projects() {
 
     for (const file of music_files) {
         if (file.p_data && file.p_data.priority) {
-            projects.push(file._id);
+            projects.push({
+                _id: file._id,
+                name: file.__filename,
+                members: 0
+            });
         }
     }
 
