@@ -209,13 +209,42 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 });
 
+async function create_user(){
+  const username = document.getElementById('regUsername').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+
+  console.log(username, email, password);
+
+  const response = await fetch('/user_setup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password })
+  });
+    
+  const data = await response.json();
+
+  console.log("User creation response:", data.acknowledged);
+  if (data.acknowledged) {
+    alert('Registration sucessful!');
+    location.reload();
+  }
+  else{
+    alert('Registration failed: ' + data.error);
+  }
+}
+
+
+/*
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const username = document.getElementById('regUsername').value;
   const email = document.getElementById('regEmail').value;
   const password = document.getElementById('regPassword').value;
+
+  console.log("Registering user");
   
-  const response = await fetch('/register', {
+  const response = await fetch('/user_setup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, email, password })
@@ -229,3 +258,4 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     alert('Registration failed: ' + data.error);
   }
 });
+*/

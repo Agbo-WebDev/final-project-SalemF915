@@ -52,6 +52,8 @@ async function connectToDatabase(){
 }
 
 
+
+
 //used to get the data from the database
 async function setup(){
 
@@ -217,6 +219,31 @@ async function get_projects() {
 }
 
 
+/////////////////////////////// FUnctions for User setup
+
+async function user_setup(item) {
+    /// This function creates a new user in the database, and hashes the password using bcrypt
+
+
+
+    if (!item.username || !item.email || !item.password) {
+        throw new Error('Username, email, and password are required');
+    }
+
+    const passwordHash = await bcrypt.hash(item.password, 10);
+
+    const user = {
+        username:item.username,
+        email: item.email,
+        password: passwordHash
+    }
+
+    const result = await usersCollection.insertOne(user);
+
+    return result;
+
+}
+
 const server = http.createServer(async function (req, res) {
 
 
@@ -292,10 +319,31 @@ const server = http.createServer(async function (req, res) {
             return;
 
         }
+        else if (req.url === '/user_setup' && req.method === 'POST') {
+            let body = '';
+                req.on('data', chunk =>{
+                body += chunk;
+            })
+
+            req.on('end', async() => {
+                try{
+                    const item = JSON.parse(body);
+                    const result = await user_setup(item);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                }    catch(err){
+                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+            })
+            return;
+
+        }
 
 
         else {
         res.writeHead(404);
+        console.log("TESTING");
         res.end('File not found');
         return;
         }
