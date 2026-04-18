@@ -2,6 +2,8 @@ const http = require('http');
 const fs = require('fs');
 const url = require('url');
 
+const jwt = require('jsonwebtoken');
+
 const { BSON, ServerApiVersion } = require('mongodb');
 
 const hostname = '127.0.0.1';
@@ -221,6 +223,36 @@ async function get_projects() {
 
 /////////////////////////////// FUnctions for User setup
 
+
+async function authenticateToken(req, res) {
+    // 1. Grab the 'Authorization' header
+    const authHeader = req.headers['authorization'];
+    
+    // 2. Extract the token (Expected format: "Bearer <token>")
+    // If the header exists, split it at the space and take the second part
+    const token = authHeader && authHeader.split(' ')[1];
+
+    // 3. If there is no token, send a 401 error and return null
+    if (!token) {
+        res.writeHead(401, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: "Access denied. No token provided." }));
+        return null;
+    }
+
+    try {
+        // 4. Verify the token using your secret key
+        const decodedUser = jwt.verify(token, 'your-jwt-secret-key');
+        
+        // 5. Return the user data (this makes the 'await' result truthy)
+        return decodedUser; 
+    } catch (err) {
+        // 6. If the token is fake or expired, send a 403 error and return null
+        res.writeHead(403, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: "Invalid or expired token." }));
+        return null;
+    }
+}
+
 async function user_setup(item) {
     /// This function creates a new user in the database, and hashes the password using bcrypt
 
@@ -244,14 +276,51 @@ async function user_setup(item) {
 
 }
 
+async function user_login(item) {
+
+    const {username, password} = item;
+
+    if (!username || !password) {
+        throw new Error(' Incorrect username and/or password!')
+    }
+
+    ///checks to see if the user is in the usercollection
+    const user =  await usersCollection.findOne({username : username});
+
+    if (!user) {
+            throw new Error('Incorrect username and/or password!');
+    }
+
+
+    const un_hash = await bcrypt.compare(password, user.password);
+
+    if (!un_hash){
+        throw new Error(' Incorrect username and/or password!')
+    }
+
+    const payload = {
+            username: user.username,
+            id: user._id
+        };
+    
+    const JWT_SECRET = 'your-jwt-secret-key';
+    const token = jwt.sign(payload, JWT_SECRET,{ expiresIn: '10m' })
+
+    console.log("Login successful", token);
+    return token;
+}
+
+/////////////////////////////// FUnctions for User setup
 const server = http.createServer(async function (req, res) {
 
 
     let filePath;
 
+        ///public requests
         if (req.url === '/') {
             filePath = './visual.html';
         }
+        ///private requests
         else if (req.url === '/jscode.js') {
             filePath = './jscode.js';
         }
@@ -265,6 +334,12 @@ const server = http.createServer(async function (req, res) {
         }
 
         else if (req.url === '/insert' && req.method === 'POST') {
+            const user = await authenticateToken(req, res);
+            if (!user) return; // Stop if authentication failed
+
+            
+
+
             let body = '';
 
             req.on('data', chunk => {
@@ -332,12 +407,32 @@ const server = http.createServer(async function (req, res) {
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify(result));
                 }    catch(err){
-                      res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ error: 'Invalid JSON' }));
                 }
             })
             return;
 
+        }
+        else if (req.url === '/user_login' && req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk =>{
+                body += chunk;
+            })
+
+            req.on('end', async() =>{
+                try{
+                    const item = JSON.parse(body);
+                    const result = await user_login(item);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                }
+                catch(err){
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+            })
+            return;
         }
 
 

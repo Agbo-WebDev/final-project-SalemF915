@@ -108,6 +108,11 @@ async function createproject() {
 
 async function insert(){
 
+    //gets nessessary token
+    const token = localStorage.getItem('my_jwt_token');
+
+
+
     //gets the file from input
     file_1 = document.getElementById('upload1');
 
@@ -133,7 +138,9 @@ async function insert(){
     await fetch('/insert', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+
         },
         body: JSON.stringify(payload),
     });
@@ -238,7 +245,21 @@ async function login_user(){
     const username = document.getElementById('loginUsername').value;
     const password = document.getElementById('loginPassword').value;
 
-    const response = await fte
+    const response = await fetch('/user_login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({username, password})
+    });
+  const token = await response.json(); 
+
+      if (token) {
+          // SAVE the token in the browser's memory (localStorage)
+          localStorage.setItem('my_jwt_token', token);
+          console.log("Token saved!");
+      }
+    
+
+
 }
 
 /*
