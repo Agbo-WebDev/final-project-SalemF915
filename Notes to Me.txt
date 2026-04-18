@@ -1,7 +1,0 @@
-Packages downloaded:
-
-$ npm install jsonwebtoken
-
-npm install -g pkg
-
-pkg server.js --targets node18-win-x64

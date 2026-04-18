@@ -258,15 +258,14 @@ async function user_setup(item) {
 
 
 
-    if (!item.username || !item.email || !item.password) {
-        throw new Error('Username, email, and password are required');
+    if (!item.username || !item.password) {
+        throw new Error('Usernameand password are required');
     }
 
     const passwordHash = await bcrypt.hash(item.password, 10);
 
     const user = {
         username:item.username,
-        email: item.email,
         password: passwordHash
     }
 
@@ -325,6 +324,8 @@ const server = http.createServer(async function (req, res) {
             filePath = './jscode.js';
         }
         else if (req.url === '/music'){
+            const user = await authenticateToken(req, res);
+            if (!user) return; // Stop if authentication failed
             setup().then(data =>{
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 res.end(JSON.stringify(data));
@@ -336,9 +337,6 @@ const server = http.createServer(async function (req, res) {
         else if (req.url === '/insert' && req.method === 'POST') {
             const user = await authenticateToken(req, res);
             if (!user) return; // Stop if authentication failed
-
-            
-
 
             let body = '';
 
@@ -363,7 +361,10 @@ const server = http.createServer(async function (req, res) {
         }
 
         else if (req.url === '/create_project' && req.method === 'POST') {
+            const user = await authenticateToken(req, res);
+            if (!user) return; // Stop if authentication failed
             let body = '';
+
 
             req.on('data', chunk =>{
                 body += chunk;

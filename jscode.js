@@ -39,21 +39,7 @@ async function update_table(){
 
     ///creates a collapse for the projects, so you can see all the family memebers of a project 
 
-    ///goes through all the projects
-
-    /*
-    for (const item of items) {
-
-        const family
-        const dropdown = document.getElementById('projectCollapse');
-
-        const option = document.createElement('option');
-        option.value = item._id;
-        option.textContent = item.name;
-        dropdown.appendChild(option);
-
-    }
-    */
+    
 }
 
 async function server_test(){
@@ -218,15 +204,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 async function create_user(){
   const username = document.getElementById('regUsername').value;
-  const email = document.getElementById('regEmail').value;
   const password = document.getElementById('regPassword').value;
 
-  console.log(username, email, password);
+  console.log(username, password);
 
   const response = await fetch('/user_setup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password })
+    body: JSON.stringify({ username, password })
   });
     
   const data = await response.json();
@@ -262,27 +247,7 @@ async function login_user(){
 
 }
 
-/*
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const username = document.getElementById('regUsername').value;
-  const email = document.getElementById('regEmail').value;
-  const password = document.getElementById('regPassword').value;
-
-  console.log("Registering user");
-  
-  const response = await fetch('/user_setup', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, email, password })
-  });
-  
-  const data = await response.json();
-  if (data.success) {
-    alert('Registration successful!');
-    location.reload();
-  } else {
-    alert('Registration failed: ' + data.error);
-  }
-});
-*/
+async function logout(){
+    localStorage.removeItem('my_jwt_token');
+    Location.reload();
+}
