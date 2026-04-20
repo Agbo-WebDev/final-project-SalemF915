@@ -59,12 +59,12 @@ async function connectToDatabase(){
 
 
 //used to get the data from the database
-async function setup(){
+async function setup(user){
 
 
     //gets the desired database
 
-    let music_files = await dbo.collection('msc').find({}).toArray();
+    let music_files = await dbo.collection('msc').find({'p_data.user':new ObjectId(user.id)}).toArray();
 
 
     return music_files;
@@ -111,10 +111,11 @@ async function compare(obj1, obj2){
 
 
 
-async function insert(item) {
+async function insert(user,item) {
 
+    ///gets the user's current token to find user id to connect to correct database
 
-    const inserting = item;
+    const inserting = item
 
     if (!inserting.data || !inserting.__filename) {
         throw new Error('Item must have data and filename properties');
@@ -123,7 +124,7 @@ async function insert(item) {
 
     /// First it needs to compare the file to other existing files in database, if the file is similar or the exact same, it should add it to the same family
 
-    const music_files = await dbo.collection('msc').find({}).toArray();
+    const music_files = await dbo.collection('msc').find({'p_data.user':new ObjectId(user.id)}).toArray();
 
     ///goes through all the music files in the database, compares them to new file, if similar, adds new file to the same family, and makes the new file the priority file. If not, creates a new family for new file
     for (const file of music_files) {
@@ -143,7 +144,8 @@ async function insert(item) {
                 priority: true,
                 name:item.name,
                 description: "This is a test",
-                date: new Date()
+                date: new Date(),
+                user: new ObjectId(user.id)
             }
             const new_file = {
                 ...item,
@@ -167,7 +169,7 @@ async function insert(item) {
     }
     ///if the file is not similar , create a new family for the new file, and make it the priority
 
-    create_project(inserting);
+    create_project(user,inserting);
     return;
 
 
@@ -175,8 +177,10 @@ async function insert(item) {
 
 }
 
-async function create_project(item) {
+async function create_project(user,item) {
     /// This function creates a unquie project that can be used to store music files
+
+    console.log("USER", user)
 
     const p_data = {
 
@@ -188,7 +192,8 @@ async function create_project(item) {
         name: item.name,  // Get from item or use default
         description: item.description || "This is a test",
         ///date that project was uploaded to the database
-        date: new Date()
+        date: new Date(),
+        user: new ObjectId(user)
     }
     const project = {
         ...item, 
@@ -201,11 +206,11 @@ async function create_project(item) {
 
 }
 
-async function get_projects() {
+async function get_projects(user) {
 
     const projects = []
 
-    const music_files = await dbo.collection('msc').find({}).toArray();
+    const music_files = await dbo.collection('msc').find({'p_data.user':new ObjectId(user.id)}).toArray();
 
     for (const file of music_files) {
         if (file.p_data && file.p_data.priority) {
@@ -223,10 +228,10 @@ async function get_projects() {
     
 }
 
-async function get_family(project_id) {
+async function get_family(user,project_id) {
     
     const searchId = new ObjectId(project_id);
-    const music_files = await dbo.collection('msc').find({'p_data.unique_id':searchId}).toArray();
+    const music_files = await dbo.collection('msc').find({'p_data.unique_id':searchId, 'p_data.user': new ObjectId(user.id)}).toArray();
 
     console.log(music_files);
 
@@ -389,7 +394,7 @@ const server = http.createServer(async function (req, res) {
             const user = await authenticateToken(req, res);
             if (!user) return; // Stop if authentication failed
 
-            setup().then(data =>{
+            setup(user).then(data =>{
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 res.end(JSON.stringify(data));
             });
@@ -411,7 +416,7 @@ const server = http.createServer(async function (req, res) {
             req.on('end', async() => {
                 try{
                     const item = JSON.parse(body);
-                    await insert(item);
+                    await insert(user ,item);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify({ success: true }));
                 } catch(err){
@@ -436,7 +441,7 @@ const server = http.createServer(async function (req, res) {
             req.on('end', async() => {
                 try{
                     const item = JSON.parse(body);
-                    const result = await create_project(item);
+                    const result = await create_project(user,item);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify(result));
                 }    catch(err){
@@ -452,7 +457,7 @@ const server = http.createServer(async function (req, res) {
             const user = await authenticateToken(req, res);
             if (!user) return; // Stop if authentication failed
 
-            get_projects().then(data =>{
+            get_projects(user).then(data =>{
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 res.end(JSON.stringify(data));
             })
@@ -473,7 +478,7 @@ const server = http.createServer(async function (req, res) {
                 try{
                     const item = JSON.parse(body);
                     console.log("this ran")
-                    const data = await get_family(item.id);
+                    const data = await get_family(user,item.id);
                     res.writeHead(200, { 'Content-Type': 'application/json' });
                     res.end(JSON.stringify(data));
                 }
