@@ -4,6 +4,7 @@ const url = require('url');
 
 const jwt = require('jsonwebtoken');
 
+
 const { BSON, ServerApiVersion } = require('mongodb');
 
 const hostname = '127.0.0.1';
@@ -18,6 +19,7 @@ const bcrypt = require('bcryptjs');
 ///********************************************
 ///MONGO ATLAS SET UP **********************
 const { MongoClient } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const uri = "mongodb+srv://guest_user:1234@mycluster0.zwstjen.mongodb.net/";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -210,6 +212,7 @@ async function get_projects() {
             const memberCount = await dbo.collection('msc').countDocuments({'p_data.unique_id': file.p_data.unique_id});
             projects.push({
                 _id: file._id,
+                unique_id: file.p_data.unique_id,
                 name: file.__filename,
                 members: memberCount
             });
@@ -220,6 +223,16 @@ async function get_projects() {
     
 }
 
+async function get_family(project_id) {
+    
+    const searchId = new ObjectId(project_id);
+    const music_files = await dbo.collection('msc').find({'p_data.unique_id':searchId}).toArray();
+
+    console.log(music_files);
+
+    return music_files;
+
+}
 
 /////////////////////////////// FUnctions for User setup
 
@@ -444,6 +457,33 @@ const server = http.createServer(async function (req, res) {
                 res.end(JSON.stringify(data));
             })
 
+            return;
+
+        }
+        else if (req.url === '/get_family_files' && req.method === 'POST') {
+            const user = await authenticateToken(req, res);
+            if (!user) return; // Stop if authentication failed
+            let body = '';
+
+
+            req.on('data', chunk =>{
+                body += chunk;
+            })
+            req.on('end', async() => {
+                try{
+                    const item = JSON.parse(body);
+                    console.log("this ran")
+                    const data = await get_family(item.id);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(data));
+                }
+                
+                catch(err){
+                    console.error('Insert error:', err);
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify({ error: err.message }));
+                }
+            })
             return;
 
         }

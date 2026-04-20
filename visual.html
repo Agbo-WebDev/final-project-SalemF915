@@ -86,12 +86,26 @@
             <button type="button" onclick="dropdown_update()" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
                 Dropdown button
             </button>
-        <div class="dropdown-menu" style="width: 50%; display: flex; flex-direction: column;">
-
-
+        <div class="dropdown-menu" style="width: 50%;">
 
         </div>
         </div>
+
+        <table class="table table-dark" id="family_table">
+            <thead>
+                <tr>
+                    <th scope="col">Project Name</th>
+                    <th scope="col">Date Added</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Download JSON</th>
+                </tr>
+
+            </thead>
+            <tbody id="familyTableBody">
+                <!-- Project rows will be dynamically added here -->
+            </tbody>
+
+        </table>
 
 
 

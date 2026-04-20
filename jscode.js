@@ -1,4 +1,8 @@
+const e = require("express");
 const { response } = require("express");
+
+const fs = require("fs");
+
 
 //The file contains stuff for user accounts
 let users = {
@@ -17,6 +21,7 @@ async function update_table(){
 
     const response = await fetch('/get_projects', {
         headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         }
     });
@@ -49,6 +54,60 @@ async function update_table(){
     
 }
 
+async function download_file(params) {
+    
+    const file = params
+
+}
+
+///updates the other table, to show the family of a related project
+async function family_update(project) {
+    const token = localStorage.getItem('my_jwt_token')
+
+    const family_id = project
+  
+    const response = await fetch('/get_family_files', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({id: family_id}),
+    })
+    const music_files = await response.json()
+
+    const family_table = document.getElementById('familyTableBody');
+    family_table.innerHTML = '';
+
+    for (const item of music_files) {
+        const row = document.createElement('tr');
+
+
+        const nameCell = document.createElement('td');
+        nameCell.textContent = item.__filename;
+        row.appendChild(nameCell);
+
+        const timeCell = document.createElement('td');
+        timeCell.textContent = item.p_data.date;
+        row.appendChild(timeCell);
+
+        const priority = document.createElement('td');
+        priority.textContent = item.p_data.priority;
+        row.append(priority)
+
+        const download = document.createElement('button')
+        
+        download.textContent = 'Download Project';
+        download.classList.add('btn', 'btn-primary');
+        download.addEventListener()
+        row.append(download)
+
+
+        family_table.appendChild(row);
+    }
+
+    
+}
 
 ///displays all projects when the dropdown table is dropped
 async function dropdown_update() {
@@ -59,7 +118,7 @@ async function dropdown_update() {
         }
     });
     ///gets a list of all the projects 
-    const music_projects = await response.json()
+    const music_projects = await response.json();
 
     const dropdown = document.querySelector('.dropdown-menu');
     /// clears the dropdown menu so it does not grow infinatly
@@ -67,14 +126,24 @@ async function dropdown_update() {
 
     for (const items of music_projects) {
         const dropitem = document.createElement('a');
-        dropitem.text = String(items.name)
-        dropitem.value = items.id
 
-        dropdown.append(dropitem)
+        dropitem.text = String(items.name);
+        dropitem.value = items.id;
+        
+        dropitem.addEventListener('click', (e) =>{
+            e.preventDefault();
+            family_update(items.unique_id);
+        });
+
+        dropdown.append(dropitem);
 
     }
     
 }
+
+
+
+
 
 async function server_test(){
 
