@@ -235,6 +235,7 @@ async function authenticateToken(req, res) {
     // 3. If there is no token, send a 401 error and return null
     if (!token) {
         res.writeHead(401, { 'Content-Type': 'application/json' });
+        console.log("Access denied: Suck it loser")
         res.end(JSON.stringify({ error: "Access denied. No token provided." }));
         return null;
     }
@@ -248,6 +249,8 @@ async function authenticateToken(req, res) {
     } catch (err) {
         // 6. If the token is fake or expired, send a 403 error and return null
         res.writeHead(403, { 'Content-Type': 'application/json' });
+        console.log("Access denied: Suck it loser")
+
         res.end(JSON.stringify({ error: "Invalid or expired token." }));
         return null;
     }
@@ -319,13 +322,60 @@ const server = http.createServer(async function (req, res) {
         if (req.url === '/') {
             filePath = './visual.html';
         }
-        ///private requests
         else if (req.url === '/jscode.js') {
             filePath = './jscode.js';
         }
+
+        //sets up a new user profile
+        else if (req.url === '/user_setup' && req.method === 'POST') {
+            let body = '';
+                req.on('data', chunk =>{
+                body += chunk;
+            })
+
+            req.on('end', async() => {
+                try{
+                    const item = JSON.parse(body);
+                    const result = await user_setup(item);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                }    catch(err){
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+            })
+            return;
+
+        }
+
+        else if (req.url === '/user_login' && req.method === 'POST') {
+            let body = '';
+            req.on('data', chunk =>{
+                body += chunk;
+            })
+
+            req.on('end', async() =>{
+                try{
+                    const item = JSON.parse(body);
+                    const result = await user_login(item);
+                    res.writeHead(200, { 'Content-Type': 'application/json' });
+                    res.end(JSON.stringify(result));
+                }
+                catch(err){
+                        res.writeHead(400, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
+                }
+            })
+            return;
+        }
+
+
+        ///private requests
+
         else if (req.url === '/music'){
             const user = await authenticateToken(req, res);
             if (!user) return; // Stop if authentication failed
+
             setup().then(data =>{
                 res.writeHead(200, {'Content-Type': 'application/json'});
                 res.end(JSON.stringify(data));
@@ -386,6 +436,8 @@ const server = http.createServer(async function (req, res) {
         }
 
         else if (req.url === '/get_projects') {
+            const user = await authenticateToken(req, res);
+            if (!user) return; // Stop if authentication failed
 
             get_projects().then(data =>{
                 res.writeHead(200, {'Content-Type': 'application/json'});
@@ -394,46 +446,6 @@ const server = http.createServer(async function (req, res) {
 
             return;
 
-        }
-        else if (req.url === '/user_setup' && req.method === 'POST') {
-            let body = '';
-                req.on('data', chunk =>{
-                body += chunk;
-            })
-
-            req.on('end', async() => {
-                try{
-                    const item = JSON.parse(body);
-                    const result = await user_setup(item);
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(result));
-                }    catch(err){
-                        res.writeHead(400, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
-                }
-            })
-            return;
-
-        }
-        else if (req.url === '/user_login' && req.method === 'POST') {
-            let body = '';
-            req.on('data', chunk =>{
-                body += chunk;
-            })
-
-            req.on('end', async() =>{
-                try{
-                    const item = JSON.parse(body);
-                    const result = await user_login(item);
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify(result));
-                }
-                catch(err){
-                        res.writeHead(400, { 'Content-Type': 'application/json' });
-                        res.end(JSON.stringify({ error: 'Invalid JSON' }));
-                }
-            })
-            return;
         }
 
 

@@ -11,8 +11,14 @@ let users = {
 
 
 async function update_table(){
+        //gets nessessary token
+    const token = localStorage.getItem('my_jwt_token');
 
-    const response = await fetch('/get_projects');
+    const response = await fetch('/get_projects', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
     const items = await response.json();
 
     const table = document.getElementById('projectTableBody');
@@ -56,6 +62,10 @@ async function server_test(){
 }
 
 async function createproject() {
+    //gets nessessary token
+    const token = localStorage.getItem('my_jwt_token');
+
+
     const project = document.getElementById('project_name');
 
     const read_file = project.files[0];
@@ -74,7 +84,8 @@ async function createproject() {
     const response = await fetch('/create_project', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(payload),
     });
