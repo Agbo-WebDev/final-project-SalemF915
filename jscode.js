@@ -1,3 +1,4 @@
+const { response } = require("express");
 
 //The file contains stuff for user accounts
 let users = {
@@ -45,6 +46,33 @@ async function update_table(){
 
     ///creates a collapse for the projects, so you can see all the family memebers of a project 
 
+    
+}
+
+
+///displays all projects when the dropdown table is dropped
+async function dropdown_update() {
+    const token = localStorage.getItem('my_jwt_token');
+    const response = await fetch('/get_projects', {
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    });
+    ///gets a list of all the projects 
+    const music_projects = await response.json()
+
+    const dropdown = document.querySelector('.dropdown-menu');
+    /// clears the dropdown menu so it does not grow infinatly
+    dropdown.innerHTML = '';
+
+    for (const items of music_projects) {
+        const dropitem = document.createElement('a');
+        dropitem.text = String(items.name)
+        dropitem.value = items.id
+
+        dropdown.append(dropitem)
+
+    }
     
 }
 
