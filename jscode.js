@@ -95,11 +95,18 @@ async function family_update(project) {
         priority.textContent = item.p_data.priority;
         row.append(priority)
 
-        const download = document.createElement('button')
-        
+        const download = document.createElement('a')
+        const data = item.data;
+
+        const jsonstring = JSON.stringify(data, null, 2);
+
+        const blob = new Blob([jsonstring], { type: 'application/json' });
+
+        const url = URL.createObjectURL(blob);
         download.textContent = 'Download Project';
+        download.href = url;
+        download.download = 'data.json';
         download.classList.add('btn', 'btn-primary');
-        download.addEventListener()
         row.append(download)
 
 
