@@ -46,9 +46,9 @@ const collection = dbo.collection('msc');
 async function connectToDatabase(){
   try {
     await client.connect();
-    console.log("Mongo Atlas connected successfully");
+    ///console.log("Mongo Atlas connected successfully");
     let atlas_music_files = await dbo.collection('msc').find({}).toArray();
-    console.log(atlas_music_files);
+    ///console.log(atlas_music_files);
   } catch(err) {
     console.error("Failed to connect to MongoDB:", err);
     throw err;
